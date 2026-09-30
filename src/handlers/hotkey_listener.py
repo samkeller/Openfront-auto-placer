@@ -11,7 +11,12 @@ from src.config.loader import Building
 def key_name(key: keyboard.Key | keyboard.KeyCode) -> str | None:
     """Normalize left/right modifier keys and printable hotkeys."""
     if isinstance(key, keyboard.KeyCode):
-        return key.char.lower() if key.char else None
+        if key.char and key.char.isprintable():
+            return key.char.lower()
+        vk = key.vk
+        if vk is not None and 0x41 <= vk <= 0x5A:
+            return chr(vk).lower()
+        return None
     name = key.name.lower()
     for modifier in ("ctrl", "shift", "alt"):
         if name == modifier or name.startswith(modifier + "_"):
