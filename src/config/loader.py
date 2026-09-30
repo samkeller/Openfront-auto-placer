@@ -103,6 +103,6 @@ def load_config(path: Path) -> Config:
         if type(target) is not int or target < 1:
             raise ValueError(f"{name}.target must be a positive integer")
         buildings.append(Building(name, chord, key.lower(), stackable, target))
-    if any(chord == frozenset((key,)) for chord in seen for key in game_keys):
-        raise ValueError("a single-key hotkey cannot also be a simulated game key")
+    if any(key in chord for chord in seen for key in game_keys):
+        raise ValueError("a hotkey trigger cannot also be a simulated game key")
     return Config(delay, double_delay, limit, level, tuple(buildings))

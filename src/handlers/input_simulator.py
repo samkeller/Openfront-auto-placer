@@ -20,17 +20,9 @@ class InputSimulator:
     def press_game_key(self, key: str) -> None:
         """Press and release the configured in-game selection key."""
         self.keyboard.press(key)
-        try:
-            self.keyboard.release(key)
-        except Exception:
-            self.keyboard.release(key)
-            raise
+        self.keyboard.release(key)
 
     def click(self) -> None:
         """Click at the current pointer position."""
         self.mouse.press(mouse.Button.left)
-        try:
-            self.mouse.release(mouse.Button.left)
-        except Exception:
-            self.mouse.release(mouse.Button.left)
-            raise
+        self.mouse.release(mouse.Button.left)
