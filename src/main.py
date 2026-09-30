@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 import sys
-from threading import Event
+from time import sleep
 
 from src.config.loader import load_config
 from src.handlers.hotkey_listener import HotkeyListener
@@ -28,15 +28,18 @@ def main() -> int:
     setup_logging(config.log_level)
     controller = LoopController(config, InputSimulator(), game_is_foreground)
     listener = HotkeyListener(config.buildings, controller.toggle, controller.stop)
+    started = False
     try:
         listener.start()
+        started = True
         logging.info("Prêt. Pause/Break = arrêt immédiat; Ctrl+C = quitter.")
         while listener.listener.is_alive():
-            Event().wait(0.2)
+            sleep(0.2)
     except KeyboardInterrupt:
         pass
     finally:
-        listener.close()
+        if started:
+            listener.close()
         controller.close()
     return 0
 

@@ -2,6 +2,7 @@
 
 import logging
 from threading import Condition, Thread
+from time import monotonic
 from typing import Callable, Protocol
 
 from src.config.loader import Building, Config
@@ -26,6 +27,7 @@ class LoopController:
         self.condition = Condition()
         self.active: Building | None = None
         self.count = 0
+        self.last_click = 0.0
         self.closed = False
         self.worker = Thread(target=self._run, name="placement-worker", daemon=True)
         self.worker.start()
@@ -86,10 +88,18 @@ class LoopController:
                 with self.condition:
                     if self.closed or self.active != building:
                         continue
+                    remaining = self.config.click_delay_ms / 1000 - (monotonic() - self.last_click)
+                    if remaining > 0:
+                        self.condition.wait(timeout=remaining)
+                        continue
+                    if not self.game_is_foreground():
+                        continue
                     self.simulator.press_game_key(building.game_key)
                 if presses_per_placement(building) == 2:
                     with self.condition:
                         if self.closed or self.active != building:
+                            continue
+                        if not self.game_is_foreground():
                             continue
                         self.simulator.press_game_key(building.game_key)
                         self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
@@ -99,13 +109,14 @@ class LoopController:
                     if not self.game_is_foreground():
                         continue
                     self.simulator.click()
+                    self.last_click = monotonic()
                     self.count += 1
                     limit = self.config.max_iterations_per_session
                     if limit and self.count >= limit:
                         logging.warning("[WARN] Limite max iterations (%s/%s) : arrêt",
                                         self.count, limit)
                         self.active = None
-                    elif limit and self.count >= limit - min(100, limit // 10):
+                    elif limit and self.count == limit - min(100, limit // 10):
                         logging.warning("[WARN] Approche limite max iterations (%s/%s)",
                                         self.count, limit)
                     self.condition.wait(timeout=self.config.click_delay_ms / 1000)

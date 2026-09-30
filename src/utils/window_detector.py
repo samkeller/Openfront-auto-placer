@@ -12,6 +12,7 @@ def game_is_foreground() -> bool:
     user32 = ctypes.windll.user32
     kernel32 = ctypes.windll.kernel32
     user32.GetForegroundWindow.restype = wintypes.HWND
+    user32.IsIconic.argtypes = [wintypes.HWND]
     user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
     kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
     kernel32.OpenProcess.restype = wintypes.HANDLE
