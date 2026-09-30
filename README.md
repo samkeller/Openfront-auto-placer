@@ -1,0 +1,1 @@
+# Openfront-auto-placer
