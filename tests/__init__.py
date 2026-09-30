@@ -1,0 +1,1 @@
+"""Mocked automation tests."""
