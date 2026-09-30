@@ -1,0 +1,1 @@
+"""OpenFront auto-placement."""
