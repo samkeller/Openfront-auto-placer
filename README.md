@@ -71,7 +71,8 @@ Set `log_level = "DEBUG"` to log every simulated step (`[SEND] Touche 1
 (1/2)`, `[SEND] Touche 1 (2/2, arme le x5)`, `[SEND] Clic gauche`) and
 confirm what was actually sent.
 
-The click interval has a minimum of 100 ms. The session stops after 5000
+The click interval can be lowered to 10 ms; very short intervals may cause the
+game to miss inputs. The session stops after 5000
 placements by default; set `max_iterations_per_session = 0` for no limit
 (only if you accept the risk). Toggle again to start a new session.
 

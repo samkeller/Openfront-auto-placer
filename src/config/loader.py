@@ -76,7 +76,7 @@ def load_config(path: Path) -> Config:
     shortcuts = data.get("shortcuts")
     if not isinstance(general, dict) or not isinstance(shortcuts, dict):
         raise ValueError("config needs [general] and [shortcuts] tables")
-    delay = _integer(general, "click_delay_ms", 100)
+    delay = _integer(general, "click_delay_ms", 10)
     double_delay = _integer(general, "double_press_delay_ms", 10)
     limit = _integer(general, "max_iterations_per_session", 0)
     level = general.get("log_level")

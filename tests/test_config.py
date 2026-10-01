@@ -22,6 +22,8 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(config.buildings[-1].hotkey, frozenset(("f10",)))
             path.write_text(path.read_text().replace("click_delay_ms = 100", "click_delay_ms = 150"))
             self.assertEqual(load_config(path).click_delay_ms, 150)
+            path.write_text(path.read_text().replace("click_delay_ms = 150", "click_delay_ms = 10"))
+            self.assertEqual(load_config(path).click_delay_ms, 10)
 
     def test_invalid_configuration(self) -> None:
         for before, after in (
