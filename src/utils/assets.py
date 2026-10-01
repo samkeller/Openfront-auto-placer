@@ -36,6 +36,11 @@ def load_logo(master: tk.Misc) -> tk.PhotoImage | None:
     path = assets_directory() / "Logo.png"
     if not path.exists():
         return None
-    image = tk.PhotoImage(master=master, file=path)
+    try:
+        image = tk.PhotoImage(master=master, file=path)
+    except tk.TclError:
+        # The supplied logo may be encoded as JPEG despite its .png name.
+        # Tkinter has no JPEG loader, so the rest of the GUI must still start.
+        return None
     scale = max(image.width() // 96, 1)
     return image.subsample(scale, scale)
