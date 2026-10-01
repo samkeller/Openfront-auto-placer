@@ -13,6 +13,7 @@ class Simulator(Protocol):
     """Input operations used by the action loop."""
 
     def press_game_key(self, key: str) -> None: ...
+    def cancel_selection(self) -> None: ...
     def click(self) -> None: ...
 
 
@@ -94,9 +95,22 @@ class LoopController:
                         continue
                     if not self.game_is_foreground():
                         continue
+                    double = presses_per_placement(building) == 2
+                    if double:
+                        # The game's x5 selection is a toggle with no reset on
+                        # placement, so a blind pair of presses only lands on
+                        # x5 when the previous state happens to match. Cancel
+                        # first: the next press is then always a fresh x1
+                        # selection and the one after it always arms x5.
+                        self.simulator.cancel_selection()
+                        self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
+                        if self.closed or self.active != building:
+                            continue
+                        if not self.game_is_foreground():
+                            continue
                     self.simulator.press_game_key(building.game_key)
                     self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
-                if presses_per_placement(building) == 2:
+                if double:
                     with self.condition:
                         if self.closed or self.active != building:
                             continue

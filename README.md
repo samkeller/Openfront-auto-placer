@@ -46,11 +46,22 @@ Hotkeys may use one trigger letter, digit, F1–F12, Escape or Pause with
 must not overlap any in-game key. F0 does not exist on a standard keyboard,
 so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
 flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
-Atomic Bomb are stackable. When `target > 5`, those buildings send the game
-key twice; other buildings send it once. `double_press_delay_ms` is waited
-after every selection-key press, including the last one before the click, so
-the game can register the selection. `target` is a selection mode, **not** an
+Atomic Bomb are stackable. When `target > 5`, those buildings arm the game's
+×5 selection; other buildings place one at a time. `double_press_delay_ms` is
+waited after every key press, including the last one before the click, so the
+game can register the selection. `target` is a selection mode, **not** an
 automatic stopping count.
+
+The ×5 selection is a *toggle* in the game: pressing the building key again
+switches between ×1 and ×5, and placing a building does not reset it. Sending
+two presses blindly therefore lands on ×5 only when the previous state
+happens to match. Each ×5 placement is consequently sent as **Escape, key,
+key, click**: Escape clears any selection, so the first press always selects
+×1 and the second always arms ×5.
+
+The game applies ×5 only when it is an upgrade — the pointer must be over an
+existing, upgradeable structure — or for an Atomic Bomb. On empty ground it
+builds a single structure whatever the selection shows.
 
 Game keys are sent as physical key presses, identified by their position on a
 US keyboard layout, because the game reads `KeyboardEvent.code` (`Digit1`,
@@ -88,6 +99,9 @@ must be verified manually on a Windows machine.
 - Clicks logged but nothing is built? The pointer must be over the map, not
   over the HUD, and the match must be past the spawn phase. Raise
   `double_press_delay_ms` if the game needs longer to arm the selection.
+- `target > 5` still placing one at a time? Point at an existing structure you
+  can upgrade; the game ignores ×5 on empty ground. Raise
+  `double_press_delay_ms` if the ×5 badge does not appear before the click.
 - Can't create `config.toml`? Move the executable to a writable folder.
 - Config error? Correct the value reported in the console or restore the
   template and restart.
