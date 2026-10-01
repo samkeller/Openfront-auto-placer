@@ -18,6 +18,9 @@ class FakeInput:
     def press_game_key(self, key: str) -> None:
         self.events.append(f"key:{key}")
 
+    def cancel_selection(self) -> None:
+        self.events.append("cancel")
+
     def click(self) -> None:
         self.events.append("click")
         self.clicked.set()
@@ -53,8 +56,22 @@ class ControllerTests(unittest.TestCase):
         try:
             controller.toggle(config.buildings[0])
             self.assertTrue(simulator.clicked.wait(1))
-            self.assertEqual(simulator.events, ["key:1", "key:1", "click"])
+            self.assertEqual(simulator.events,
+                             ["cancel", "key:1", "key:1", "click"])
             self.assertIsNone(controller.active)
+        finally:
+            controller.close()
+
+    def test_single_press_does_not_cancel(self) -> None:
+        """A x1 placement must not disturb an existing selection."""
+        config = load_config(TEMPLATE)
+        config = replace(config, max_iterations_per_session=1)
+        simulator = FakeInput()
+        controller = LoopController(config, simulator, lambda: True)
+        try:
+            controller.toggle(config.buildings[0])
+            self.assertTrue(simulator.clicked.wait(1))
+            self.assertEqual(simulator.events, ["key:1", "click"])
         finally:
             controller.close()
 
