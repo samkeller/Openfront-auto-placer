@@ -5,13 +5,13 @@ max_iterations_per_session = 5000
 log_level = "INFO"
 
 [shortcuts]
-city = { hotkey = "F1", game_key = "1", stackable = true, target = 1 }
-factory = { hotkey = "F2", game_key = "2", stackable = true, target = 1 }
-port = { hotkey = "F3", game_key = "3", stackable = true, target = 1 }
-defense_post = { hotkey = "F4", game_key = "4", stackable = false, target = 1 }
-missile_silo = { hotkey = "F5", game_key = "5", stackable = true, target = 1 }
-sam_launcher = { hotkey = "F6", game_key = "6", stackable = true, target = 1 }
-atom_bomb = { hotkey = "F7", game_key = "8", stackable = true, target = 1 }
-warship = { hotkey = "F8", game_key = "7", stackable = false, target = 1 }
-hydrogen_bomb = { hotkey = "F9", game_key = "9", stackable = false, target = 1 }
-mirv = { hotkey = "F10", game_key = "0", stackable = false, target = 1 }
+city = { hotkey = "F1", game_key = "1", stackable = true, multiplier = 1 }
+factory = { hotkey = "F2", game_key = "2", stackable = true, multiplier = 1 }
+port = { hotkey = "F3", game_key = "3", stackable = true, multiplier = 1 }
+defense_post = { hotkey = "F4", game_key = "4", stackable = false, multiplier = 1 }
+missile_silo = { hotkey = "F5", game_key = "5", stackable = true, multiplier = 1 }
+sam_launcher = { hotkey = "F6", game_key = "6", stackable = true, multiplier = 1 }
+atom_bomb = { hotkey = "F7", game_key = "8", stackable = true, multiplier = 1 }
+warship = { hotkey = "F8", game_key = "7", stackable = false, multiplier = 1 }
+hydrogen_bomb = { hotkey = "F9", game_key = "9", stackable = false, multiplier = 1 }
+mirv = { hotkey = "F10", game_key = "0", stackable = false, multiplier = 1 }

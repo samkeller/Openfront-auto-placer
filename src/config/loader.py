@@ -15,6 +15,8 @@ BUILDINGS = (
 STACKABLE = frozenset((
     "city", "factory", "port", "missile_silo", "sam_launcher", "atom_bomb",
 ))
+#: The two selection sizes the game itself offers (its x1/x5 toggle).
+MULTIPLIERS = frozenset((1, 5))
 MODIFIERS = frozenset(("ctrl", "shift", "alt"))
 KEYS = frozenset(("pause", "esc", *[f"f{i}" for i in range(1, 13)]))
 
@@ -27,7 +29,7 @@ class Building:
     hotkey: frozenset[str]
     game_key: str
     stackable: bool
-    target: int
+    multiplier: int
 
 
 @dataclass(frozen=True)
@@ -99,10 +101,15 @@ def load_config(path: Path) -> Config:
         stackable = entry.get("stackable")
         if type(stackable) is not bool or stackable != (name in STACKABLE):
             raise ValueError(f"{name}.stackable must match the building type")
-        target = entry.get("target", 1)
-        if type(target) is not int or target < 1:
-            raise ValueError(f"{name}.target must be a positive integer")
-        buildings.append(Building(name, chord, key.lower(), stackable, target))
+        if "target" in entry:
+            raise ValueError(
+                f"{name}.target is no longer supported; use multiplier = 1 or 5")
+        multiplier = entry.get("multiplier", 1)
+        if multiplier not in MULTIPLIERS or type(multiplier) is not int:
+            raise ValueError(f"{name}.multiplier must be 1 or 5")
+        if multiplier == 5 and not stackable:
+            raise ValueError(f"{name} cannot be placed in bulk; multiplier must be 1")
+        buildings.append(Building(name, chord, key.lower(), stackable, multiplier))
     if any(key in chord for chord in seen for key in game_keys):
         raise ValueError("a hotkey trigger cannot also be a simulated game key")
     return Config(delay, double_delay, limit, level, tuple(buildings))

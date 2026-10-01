@@ -38,7 +38,7 @@ max_iterations_per_session = 5000
 log_level = "INFO"
 
 [shortcuts]
-city = { hotkey = "F1", game_key = "1", stackable = true, target = 1 }
+city = { hotkey = "F1", game_key = "1", stackable = true, multiplier = 1 }
 ```
 
 Hotkeys may use one trigger letter, digit, F1–F12, Escape or Pause with
@@ -46,27 +46,36 @@ Hotkeys may use one trigger letter, digit, F1–F12, Escape or Pause with
 must not overlap any in-game key. F0 does not exist on a standard keyboard,
 so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
 flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
-Atomic Bomb are stackable. When `target > 5`, those buildings arm the game's
-×5 selection; other buildings place one at a time. `double_press_delay_ms` is
-waited after every key press, including the last one before the click, so the
-game can register the selection. `target` is a selection mode, **not** an
-automatic stopping count.
+Atomic Bomb are stackable — these are the only ones the game can place in
+bulk. `double_press_delay_ms` is waited after every key press, including the
+last one before the click, so the game can register the selection.
 
-The ×5 selection is a *toggle* in the game: pressing the building key again
-switches between ×1 and ×5, and placing a building does not reset it. Sending
-two presses blindly therefore lands on ×5 only when the previous state
-happens to match. Each ×5 placement is consequently sent as **Escape, key,
-key, click**: Escape clears any selection, so the first press always selects
-×1 and the second always arms ×5.
+### Placing five at a time (`multiplier`)
 
-The game applies ×5 only when it is an upgrade — the pointer must be over an
-existing, upgradeable structure — or for an Atomic Bomb. On empty ground it
-builds a single structure whatever the selection shows.
+`multiplier` is the selection size, **not** an automatic stopping count. It
+accepts exactly `1` or `5`, mirroring the game's own ×1/×5 toggle, and `5` is
+only allowed on a stackable building:
 
-Game keys are sent as physical key presses, identified by their position on a
-US keyboard layout, because the game reads `KeyboardEvent.code` (`Digit1`,
-`KeyA`). This is layout independent: `game_key = "1"` always reaches the
-game's *1* shortcut, even on AZERTY where that key types `&`.
+```toml
+city = { hotkey = "F1", game_key = "1", stackable = true, multiplier = 5 }
+```
+
+With `multiplier = 5` the tool sends **Escape, key, key, click**. The game
+arms ×5 on a *second consecutive* press of the building key, so it only works
+starting from no selection; Escape guarantees that, because a click whose
+preview has not resolved yet is deferred by the game and can otherwise leave
+the previous selection standing and invert the pair.
+
+**The game applies ×5 only to an upgrade or to an Atomic Bomb.** The pointer
+must sit on (or next to) an existing structure of the same type that you own
+and can still upgrade. On empty ground the game silently discards the
+multiplier and builds a single structure — that is the game's behaviour, not
+a limitation of this tool. Check the in-game **×5 badge** above the ghost
+preview: if it does not appear, the game is not in ×5 mode.
+
+Set `log_level = "DEBUG"` to log every simulated step (`[SEND] Échap`,
+`[SEND] Touche 1 (1/2)`, `[SEND] Touche 1 (2/2, arme le x5)`, `[SEND] Clic
+gauche`) and confirm what was actually sent.
 
 The click interval has a minimum of 100 ms. The session stops after 5000
 placements by default; set `max_iterations_per_session = 0` for no limit
@@ -99,9 +108,10 @@ must be verified manually on a Windows machine.
 - Clicks logged but nothing is built? The pointer must be over the map, not
   over the HUD, and the match must be past the spawn phase. Raise
   `double_press_delay_ms` if the game needs longer to arm the selection.
-- `target > 5` still placing one at a time? Point at an existing structure you
-  can upgrade; the game ignores ×5 on empty ground. Raise
-  `double_press_delay_ms` if the ×5 badge does not appear before the click.
+- `multiplier = 5` still placing one at a time? Point at an existing structure
+  of the same type that you own and can still upgrade; the game ignores ×5 on
+  empty ground. Switch to `log_level = "DEBUG"` to confirm both key presses
+  are sent, and watch for the in-game ×5 badge above the ghost preview.
 - Can't create `config.toml`? Move the executable to a writable folder.
 - Config error? Correct the value reported in the console or restore the
   template and restart.

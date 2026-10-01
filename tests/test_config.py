@@ -30,6 +30,8 @@ class ConfigTests(unittest.TestCase):
             ('hotkey = "F2"', 'hotkey = "F1"'),
             ('hotkey = "F1"', 'hotkey = "1"'),
             ("stackable = true", "stackable = 1"),
+            ("multiplier = 1", "multiplier = 2"),
+            ('stackable = false, multiplier = 1', 'stackable = false, multiplier = 5'),
         ):
             with self.subTest(after=after), tempfile.TemporaryDirectory() as directory:
                 path = Path(directory) / "config.toml"
@@ -37,14 +39,30 @@ class ConfigTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     load_config(path)
 
+    def test_legacy_target_is_rejected(self) -> None:
+        """An old config must fail loudly instead of silently dropping to x1."""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.toml"
+            path.write_text(TEMPLATE.read_text().replace("multiplier = 1", "target = 6"))
+            with self.assertRaisesRegex(ValueError, "multiplier"):
+                load_config(path)
+
+    def test_bulk_multiplier_accepted_for_stackable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.toml"
+            path.write_text(TEMPLATE.read_text().replace(
+                'game_key = "1", stackable = true, multiplier = 1',
+                'game_key = "1", stackable = true, multiplier = 5'))
+            self.assertEqual(load_config(path).buildings[0].multiplier, 5)
+
     def test_chords_and_press_count(self) -> None:
         self.assertEqual(parse_hotkey("Ctrl+Shift+V"), frozenset(("ctrl", "shift", "v")))
         with self.assertRaises(ValueError):
             parse_hotkey("Ctrl+Ctrl+V")
         city, _, _, defense, *_ = load_config(TEMPLATE).buildings
         self.assertEqual(presses_per_placement(city), 1)
-        self.assertEqual(presses_per_placement(replace(city, target=6)), 2)
-        self.assertEqual(presses_per_placement(replace(defense, target=6)), 1)
+        self.assertEqual(presses_per_placement(replace(city, multiplier=5)), 2)
+        self.assertEqual(presses_per_placement(replace(defense, multiplier=5)), 1)
 
 
 if __name__ == "__main__":

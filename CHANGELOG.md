@@ -6,8 +6,13 @@
   the game on layouts where digits need a modifier (AZERTY, for example).
 - Hold each simulated key and mouse button briefly, and wait
   `double_press_delay_ms` after the last selection key before clicking.
-- Cancel the current selection with Escape before a `target > 5` placement, so
-  the game's ×5 toggle is always armed instead of alternating with ×1.
+- Cancel the current selection with Escape before a ×5 placement, so the
+  game's ×5 toggle is always armed instead of alternating with ×1.
+- Replace the hidden `target > 5` trigger with an explicit `multiplier` of 1
+  or 5; a leftover `target` key now fails with an actionable message instead
+  of silently falling back to a single press.
+- Log every simulated step at DEBUG level, and document that the game applies
+  ×5 only to upgrades and atomic bombs.
 
 ## 0.1.0
 

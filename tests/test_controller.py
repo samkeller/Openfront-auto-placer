@@ -50,7 +50,7 @@ class ControllerTests(unittest.TestCase):
     def test_limit_and_double_press(self) -> None:
         config = load_config(TEMPLATE)
         config = replace(config, max_iterations_per_session=1,
-                         buildings=(replace(config.buildings[0], target=6),))
+                         buildings=(replace(config.buildings[0], multiplier=5),))
         simulator = FakeInput()
         controller = LoopController(config, simulator, lambda: True)
         try:

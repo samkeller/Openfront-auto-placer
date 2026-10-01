@@ -15,8 +15,12 @@ CANCEL_KEY = keyboard.Key.esc
 
 
 def presses_per_placement(building: Building) -> int:
-    """Return the number of selection-key presses for a placement."""
-    return 2 if building.stackable and building.target > 5 else 1
+    """Return the number of selection-key presses for a placement.
+
+    The game arms its x5 selection on a *second* consecutive press of the
+    building key, so a x5 placement needs two presses and a x1 placement one.
+    """
+    return 2 if building.stackable and building.multiplier == 5 else 1
 
 
 def key_code(key: str) -> keyboard.KeyCode:
