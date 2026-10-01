@@ -33,7 +33,7 @@ Example from `config.toml.default`:
 ```toml
 [general]
 click_delay_ms = 100
-double_press_delay_ms = 50
+double_press_delay_ms = 10
 max_iterations_per_session = 5000
 log_level = "INFO"
 
