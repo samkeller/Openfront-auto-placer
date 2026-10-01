@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import tkinter as tk
 from tkinter import messagebox, ttk
+from time import monotonic
 
 from src.config.loader import BUILDINGS, Config, Building, load_config, parse_hotkey, save_config
 from src.game_detector import GameDetector
@@ -46,6 +47,7 @@ class OpenFrontApp(tk.Tk):
         self.listener.start()
         self._logo = load_logo(self)
         self._icons: dict[str, tk.PhotoImage] = {}
+        self._status_until = 0.0
         self._building_vars: dict[str, tuple[tk.BooleanVar, tk.StringVar, tk.StringVar, tk.StringVar]] = {}
         self._general_vars: dict[str, tk.StringVar] = {}
         self._build_widgets()
@@ -164,7 +166,7 @@ class OpenFrontApp(tk.Tk):
                     Building(name, parse_hotkey(hotkey.get()), game_key.get(), int(multiplier.get()))
                 )
             return replace(self.settings, **general, buildings=tuple(buildings))
-        except TypeError as exc:
+        except (TypeError, ValueError) as exc:
             raise ValueError(f"Invalid configuration value: {exc}") from exc
 
     def _apply(self, persist: bool = False) -> None:
@@ -187,7 +189,7 @@ class OpenFrontApp(tk.Tk):
                 self.settings.buildings, self._on_hotkey, self._stop_from_hotkey
             )
             self.listener.start()
-            self.status.configure(text="Settings applied")
+            self._set_status("Settings applied")
         except (OSError, ValueError) as exc:
             messagebox.showerror("Configuration error", str(exc))
 
@@ -198,7 +200,7 @@ class OpenFrontApp(tk.Tk):
         try:
             self.settings = load_config(self.config_path)
             self._sync_vars()
-            self.status.configure(text="Settings reloaded")
+            self._set_status("Settings reloaded")
         except (OSError, ValueError) as exc:
             messagebox.showerror("Configuration error", str(exc))
 
@@ -215,6 +217,9 @@ class OpenFrontApp(tk.Tk):
     def _refresh_status(self) -> None:
         if not self.winfo_exists():
             return
+        if monotonic() < self._status_until:
+            self.after(2000, self._refresh_status)
+            return
         active = self.controller.active
         detected = self.detector.is_running()
         if active:
@@ -229,9 +234,13 @@ class OpenFrontApp(tk.Tk):
     def _launch(self) -> None:
         try:
             self.detector.launch()
-            self.status.configure(text="Game launch requested · waiting for OpenFront")
+            self._set_status("Game launch requested · waiting for OpenFront")
         except OSError as exc:
             messagebox.showerror("Launch game", str(exc))
+
+    def _set_status(self, text: str, duration: float = 3.0) -> None:
+        self.status.configure(text=text)
+        self._status_until = monotonic() + duration
 
     def _bind_theme(self) -> None:
         """Apply a readable dark theme while retaining native Tk widgets."""

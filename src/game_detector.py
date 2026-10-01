@@ -6,13 +6,15 @@ from time import monotonic
 
 from src.utils.window_detector import game_is_foreground
 
+STEAM_APP_ID = "3560670"
+
 
 class GameDetector:
     """Small adapter keeping process concerns outside the UI."""
 
     def __init__(self) -> None:
         self._running_cache = False
-        self._running_checked = 0.0
+        self._running_checked = float("-inf")
 
     def is_foreground(self) -> bool:
         return game_is_foreground()
@@ -38,7 +40,7 @@ class GameDetector:
         if os.name != "nt":
             raise OSError("OpenFront can only be launched from Windows")
         try:
-            os.startfile("steam://rungameid/3560670")  # type: ignore[attr-defined]
+            os.startfile(f"steam://rungameid/{STEAM_APP_ID}")  # type: ignore[attr-defined]
             return
         except OSError:
             pass

@@ -39,7 +39,7 @@ def icon_path(building: str) -> Path | None:
 
 def load_logo(master: tk.Misc) -> tk.PhotoImage | None:
     """Load the bundled logo, keeping the GUI usable if it is unavailable."""
-    path = assets_directory() / "Logo.png"
+    path = assets_directory() / "Logo.jpg"
     if not path.exists():
         return None
     try:

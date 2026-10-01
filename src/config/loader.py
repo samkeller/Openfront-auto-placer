@@ -5,8 +5,8 @@ from pathlib import Path
 import re
 import shutil
 import sys
-import tomllib
 import tempfile
+import tomllib
 
 
 BUILDINGS = (
