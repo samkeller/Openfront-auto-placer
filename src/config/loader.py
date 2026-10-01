@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
+import tempfile
 import tomllib
 
 
@@ -109,3 +110,40 @@ def load_config(path: Path) -> Config:
     if any(key in chord for chord in seen for key in game_keys):
         raise ValueError("a hotkey trigger cannot also be a simulated game key")
     return Config(delay, double_delay, limit, level, tuple(buildings))
+
+
+def save_config(path: Path, config: Config) -> None:
+    """Persist a validated configuration atomically next to the executable."""
+    def escape(value: str) -> str:
+        escapes = {"\\": "\\\\", '"': '\\"', "\b": "\\b", "\t": "\\t",
+                   "\n": "\\n", "\f": "\\f", "\r": "\\r"}
+        return "".join(escapes.get(character, character) for character in value)
+
+    lines = [
+        "[general]",
+        f"click_delay_ms = {config.click_delay_ms}",
+        f"double_press_delay_ms = {config.double_press_delay_ms}",
+        f"max_iterations_per_session = {config.max_iterations_per_session}",
+        f'log_level = "{escape(config.log_level)}"',
+        "",
+        "[shortcuts]",
+    ]
+    for building in config.buildings:
+        hotkey = "+".join(sorted(building.hotkey, key=lambda item: (
+            item not in MODIFIERS, item
+        )))
+        lines.append(
+            f'{building.name} = {{ hotkey = "{escape(hotkey)}", '
+            f'game_key = "{escape(building.game_key)}", multiplier = {building.multiplier} }}'
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        "w", encoding="utf-8", dir=path.parent, delete=False
+    ) as stream:
+        stream.write("\n".join(lines) + "\n")
+        temporary = Path(stream.name)
+    try:
+        temporary.replace(path)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
