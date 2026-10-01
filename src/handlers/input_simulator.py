@@ -33,9 +33,13 @@ def key_code(key: str) -> keyboard.KeyCode:
     directly keeps the physical digit and letter keys intact on every layout.
     """
     character = key.lower()
+    if len(character) != 1:
+        raise ValueError(f"game key must be a single character: {key!r}")
     if "0" <= character <= "9":
         return keyboard.KeyCode.from_vk(0x30 + ord(character) - ord("0"))
-    return keyboard.KeyCode.from_vk(0x41 + ord(character) - ord("a"))
+    if "a" <= character <= "z":
+        return keyboard.KeyCode.from_vk(0x41 + ord(character) - ord("a"))
+    raise ValueError(f"game key must be a letter or digit: {key!r}")
 
 
 class InputSimulator:

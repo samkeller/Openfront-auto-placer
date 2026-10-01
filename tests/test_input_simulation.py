@@ -37,6 +37,11 @@ class InputTests(unittest.TestCase):
         self.assertEqual(key_code("Z").vk, 0x5A)
         self.assertIsNone(key_code("1").char)
 
+    def test_key_code_rejects_unsupported_keys(self) -> None:
+        for key in ("-", "", "f1", "é"):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                key_code(key)
+
 
 if __name__ == "__main__":
     unittest.main()

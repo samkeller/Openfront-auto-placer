@@ -105,7 +105,7 @@ def load_config(path: Path) -> Config:
             raise ValueError(
                 f"{name}.target is no longer supported; use multiplier = 1 or 5")
         multiplier = entry.get("multiplier", 1)
-        if multiplier not in MULTIPLIERS or type(multiplier) is not int:
+        if type(multiplier) is not int or multiplier not in MULTIPLIERS:
             raise ValueError(f"{name}.multiplier must be 1 or 5")
         if multiplier == 5 and not stackable:
             raise ValueError(f"{name} cannot be placed in bulk; multiplier must be 1")

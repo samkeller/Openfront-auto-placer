@@ -33,7 +33,7 @@ Example from `config.toml.default`:
 ```toml
 [general]
 click_delay_ms = 100
-double_press_delay_ms = 10
+double_press_delay_ms = 20
 max_iterations_per_session = 5000
 log_level = "INFO"
 
@@ -48,7 +48,8 @@ so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
 flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
 Atomic Bomb are stackable — these are the only ones the game can place in
 bulk. `double_press_delay_ms` is waited after every key press, including the
-last one before the click, so the game can register the selection.
+last one before the click, so the game can register the selection; it
+defaults to 20 ms and may not go below 10 ms.
 
 ### Placing five at a time (`multiplier`)
 
