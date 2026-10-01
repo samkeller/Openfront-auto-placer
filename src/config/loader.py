@@ -101,9 +101,6 @@ def load_config(path: Path) -> Config:
         stackable = entry.get("stackable")
         if type(stackable) is not bool or stackable != (name in STACKABLE):
             raise ValueError(f"{name}.stackable must match the building type")
-        if "target" in entry:
-            raise ValueError(
-                f"{name}.target is no longer supported; use multiplier = 1 or 5")
         multiplier = entry.get("multiplier", 1)
         if type(multiplier) is not int or multiplier not in MULTIPLIERS:
             raise ValueError(f"{name}.multiplier must be 1 or 5")

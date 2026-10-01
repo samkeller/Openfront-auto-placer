@@ -9,8 +9,7 @@
 - Cancel the current selection with Escape before a ×5 placement, so the
   game's ×5 toggle is always armed instead of alternating with ×1.
 - Replace the hidden `target > 5` trigger with an explicit `multiplier` of 1
-  or 5; a leftover `target` key now fails with an actionable message instead
-  of silently falling back to a single press.
+  or 5.
 - Log every simulated step at DEBUG level, and document that the game applies
   ×5 only to upgrades and atomic bombs.
 - Reject `Esc` as a hotkey trigger when a building uses `multiplier = 5`,

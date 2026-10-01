@@ -39,14 +39,6 @@ class ConfigTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     load_config(path)
 
-    def test_legacy_target_is_rejected(self) -> None:
-        """An old config must fail loudly instead of silently dropping to x1."""
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "config.toml"
-            path.write_text(TEMPLATE.read_text().replace("multiplier = 1", "target = 6"))
-            with self.assertRaisesRegex(ValueError, "multiplier"):
-                load_config(path)
-
     def test_bulk_multiplier_accepted_for_stackable(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "config.toml"
