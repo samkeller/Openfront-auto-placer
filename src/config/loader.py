@@ -12,7 +12,9 @@ BUILDINGS = (
     "city", "factory", "port", "defense_post", "missile_silo",
     "sam_launcher", "atom_bomb", "warship", "hydrogen_bomb", "mirv",
 )
-STACKABLE = frozenset((
+#: The buildings the game can act on in bulk: the five upgradeable structures
+#: plus the atomic bomb, which fires as a salvo.
+BULK_CAPABLE = frozenset((
     "city", "factory", "port", "missile_silo", "sam_launcher", "atom_bomb",
 ))
 #: The two selection sizes the game itself offers (its x1/x5 toggle).
@@ -28,7 +30,6 @@ class Building:
     name: str
     hotkey: frozenset[str]
     game_key: str
-    stackable: bool
     multiplier: int
 
 
@@ -98,21 +99,13 @@ def load_config(path: Path) -> Config:
         if not isinstance(key, str) or not re.fullmatch(r"[a-zA-Z0-9]", key):
             raise ValueError(f"{name}.game_key must be a single letter or digit")
         game_keys.add(key.lower())
-        stackable = entry.get("stackable")
-        if type(stackable) is not bool or stackable != (name in STACKABLE):
-            raise ValueError(f"{name}.stackable must match the building type")
         multiplier = entry.get("multiplier", 1)
         if type(multiplier) is not int or multiplier not in MULTIPLIERS:
             raise ValueError(f"{name}.multiplier must be 1 or 5")
-        if multiplier == 5 and not stackable:
-            raise ValueError(f"{name} cannot be placed in bulk; multiplier must be 1")
-        buildings.append(Building(name, chord, key.lower(), stackable, multiplier))
+        if multiplier == 5 and name not in BULK_CAPABLE:
+            raise ValueError(f"the game cannot act on {name} in bulk; "
+                             "multiplier must be 1")
+        buildings.append(Building(name, chord, key.lower(), multiplier))
     if any(key in chord for chord in seen for key in game_keys):
         raise ValueError("a hotkey trigger cannot also be a simulated game key")
-    # A x5 placement sends Escape to clear the current selection, which would
-    # otherwise fire an Escape hotkey and toggle the tool on every placement.
-    if (any(building.multiplier == 5 for building in buildings)
-            and any("esc" in chord for chord in seen)):
-        raise ValueError("Escape cannot be a hotkey trigger when a building uses "
-                         "multiplier = 5")
     return Config(delay, double_delay, limit, level, tuple(buildings))

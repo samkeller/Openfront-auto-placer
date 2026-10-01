@@ -10,9 +10,6 @@ from src.config.loader import Building
 KEY_HOLD_SECONDS = 0.03
 CLICK_HOLD_SECONDS = 0.03
 
-#: The game's own "cancel the current selection" key.
-CANCEL_KEY = keyboard.Key.esc
-
 
 def presses_per_placement(building: Building) -> int:
     """Return the number of selection-key presses for a placement.
@@ -20,7 +17,7 @@ def presses_per_placement(building: Building) -> int:
     The game arms its x5 selection on a *second* consecutive press of the
     building key, so a x5 placement needs two presses and a x1 placement one.
     """
-    return 2 if building.stackable and building.multiplier == 5 else 1
+    return 2 if building.multiplier == 5 else 1
 
 
 def key_code(key: str) -> keyboard.KeyCode:
@@ -57,10 +54,6 @@ class InputSimulator:
     def press_game_key(self, key: str) -> None:
         """Press and release the configured in-game selection key."""
         self._tap(key_code(key))
-
-    def cancel_selection(self) -> None:
-        """Clear any pending building selection with Escape."""
-        self._tap(CANCEL_KEY)
 
     def click(self) -> None:
         """Click at the current pointer position."""

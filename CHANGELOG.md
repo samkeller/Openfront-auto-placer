@@ -12,8 +12,13 @@
   or 5.
 - Log every simulated step at DEBUG level, and document that the game applies
   ×5 only to upgrades and atomic bombs.
-- Reject `Esc` as a hotkey trigger when a building uses `multiplier = 5`,
-  since the placement sequence sends Escape itself.
+- Stop sending Escape before a `multiplier = 5` placement: dropping the
+  selection also discards the click the game defers while it validates the
+  building preview, so the x5 placement never happened.
+- Drop the redundant `stackable` field from `[shortcuts]`; it is derived from
+  the building name. Existing configurations keep working.
+- Document that the game multiplies only upgrades and atomic bomb salvos, so
+  x5 can never place five new buildings.
 
 ## 0.1.0
 

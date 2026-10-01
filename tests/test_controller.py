@@ -18,9 +18,6 @@ class FakeInput:
     def press_game_key(self, key: str) -> None:
         self.events.append(f"key:{key}")
 
-    def cancel_selection(self) -> None:
-        self.events.append("cancel")
-
     def click(self) -> None:
         self.events.append("click")
         self.clicked.set()
@@ -28,7 +25,7 @@ class FakeInput:
 
 class ControllerTests(unittest.TestCase):
     def test_toggle_and_stop(self) -> None:
-        config = load_config(TEMPLATE)
+        config = replace(load_config(TEMPLATE), double_press_delay_ms=10)
         simulator = FakeInput()
         controller = LoopController(config, simulator, lambda: True)
         try:
@@ -47,25 +44,27 @@ class ControllerTests(unittest.TestCase):
         finally:
             controller.close()
 
-    def test_limit_and_double_press(self) -> None:
+    def test_double_press_sends_only_the_building_key(self) -> None:
+        """Nothing may be sent between the paired presses and the click."""
         config = load_config(TEMPLATE)
         config = replace(config, max_iterations_per_session=1,
+                         double_press_delay_ms=10,
                          buildings=(replace(config.buildings[0], multiplier=5),))
         simulator = FakeInput()
         controller = LoopController(config, simulator, lambda: True)
         try:
             controller.toggle(config.buildings[0])
             self.assertTrue(simulator.clicked.wait(1))
-            self.assertEqual(simulator.events,
-                             ["cancel", "key:1", "key:1", "click"])
+            self.assertEqual(simulator.events, ["key:1", "key:1", "click"])
             self.assertIsNone(controller.active)
         finally:
             controller.close()
 
-    def test_single_press_does_not_cancel(self) -> None:
-        """A x1 placement must not disturb an existing selection."""
+    def test_single_press_sends_one_key(self) -> None:
         config = load_config(TEMPLATE)
-        config = replace(config, max_iterations_per_session=1)
+        config = replace(config, max_iterations_per_session=1,
+                         double_press_delay_ms=10,
+                         buildings=(replace(config.buildings[0], multiplier=1),))
         simulator = FakeInput()
         controller = LoopController(config, simulator, lambda: True)
         try:

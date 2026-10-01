@@ -13,7 +13,6 @@ class Simulator(Protocol):
     """Input operations used by the action loop."""
 
     def press_game_key(self, key: str) -> None: ...
-    def cancel_selection(self) -> None: ...
     def click(self) -> None: ...
 
 
@@ -47,8 +46,9 @@ class LoopController:
                 logging.info("[START] Auto-placement ACTIVÉ pour %s (x%s)",
                              building.name, building.multiplier)
                 if presses_per_placement(building) == 2:
-                    logging.info("[INFO] x5 : visez une structure existante à "
-                                 "améliorer ; sur terrain vide le jeu en pose une seule")
+                    logging.info("[INFO] x5 : le jeu ne multiplie que les "
+                                 "améliorations et les bombes A ; visez une "
+                                 "structure existante à améliorer")
             self.condition.notify_all()
 
     def stop(self) -> None:
@@ -99,23 +99,12 @@ class LoopController:
                         continue
                     if not self.game_is_foreground():
                         continue
+                    # The game clears its own selection after every placement,
+                    # so the first press always selects and the second always
+                    # arms x5. Nothing else may be sent in between: a key that
+                    # drops the selection also discards the click the game is
+                    # still holding back while it validates the preview.
                     double = presses_per_placement(building) == 2
-                    if double:
-                        # The x5 toggle flips on a *second* press of the same
-                        # key, so it only arms when the game starts from no
-                        # selection. A placement normally clears it, but the
-                        # game defers a click whose ghost has not resolved yet
-                        # (50 ms throttle), which can leave the previous
-                        # selection standing and invert the pair. Escape
-                        # clears it, so press one always selects and press two
-                        # always arms x5.
-                        self.simulator.cancel_selection()
-                        logging.debug("[SEND] Échap (annulation de la sélection)")
-                        self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
-                        if self.closed or self.active != building:
-                            continue
-                        if not self.game_is_foreground():
-                            continue
                     self.simulator.press_game_key(building.game_key)
                     logging.debug("[SEND] Touche %s (1/%s)", building.game_key,
                                   2 if double else 1)
