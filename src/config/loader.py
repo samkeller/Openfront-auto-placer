@@ -114,7 +114,7 @@ def load_config(path: Path) -> Config:
 
 def save_config(path: Path, config: Config) -> None:
     """Persist a validated configuration atomically next to the executable."""
-    def quote(value: str) -> str:
+    def escape(value: str) -> str:
         escapes = {"\\": "\\\\", '"': '\\"', "\b": "\\b", "\t": "\\t",
                    "\n": "\\n", "\f": "\\f", "\r": "\\r"}
         return "".join(escapes.get(character, character) for character in value)
@@ -124,7 +124,7 @@ def save_config(path: Path, config: Config) -> None:
         f"click_delay_ms = {config.click_delay_ms}",
         f"double_press_delay_ms = {config.double_press_delay_ms}",
         f"max_iterations_per_session = {config.max_iterations_per_session}",
-        f'log_level = "{quote(config.log_level)}"',
+        f'log_level = "{escape(config.log_level)}"',
         "",
         "[shortcuts]",
     ]
@@ -133,8 +133,8 @@ def save_config(path: Path, config: Config) -> None:
             item not in MODIFIERS, item
         )))
         lines.append(
-            f'{building.name} = {{ hotkey = "{quote(hotkey)}", '
-            f'game_key = "{quote(building.game_key)}", multiplier = {building.multiplier} }}'
+            f'{building.name} = {{ hotkey = "{escape(hotkey)}", '
+            f'game_key = "{escape(building.game_key)}", multiplier = {building.multiplier} }}'
         )
     path.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(

@@ -83,7 +83,8 @@ class OpenFrontApp(tk.Tk):
             if icon is not None:
                 self._icons[building.name] = icon
             ttk.Checkbutton(
-                row, text=BUILDING_LABELS[building.name], image=icon,
+                row, text=BUILDING_LABELS[building.name],
+                image=icon if icon is not None else "",
                 compound="left", variable=active,
                 command=lambda name=building.name: self._toggle(name),
             ).grid(row=0, column=0, sticky="w")
@@ -163,8 +164,8 @@ class OpenFrontApp(tk.Tk):
                     Building(name, parse_hotkey(hotkey.get()), game_key.get(), int(multiplier.get()))
                 )
             return replace(self.settings, **general, buildings=tuple(buildings))
-        except (TypeError, ValueError) as exc:
-            raise ValueError(str(exc)) from exc
+        except TypeError as exc:
+            raise ValueError(f"Invalid configuration value: {exc}") from exc
 
     def _apply(self, persist: bool = False) -> None:
         try:
