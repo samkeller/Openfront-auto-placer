@@ -12,9 +12,32 @@ class GameDetector:
     def is_foreground(self) -> bool:
         return game_is_foreground()
 
+    def is_running(self) -> bool:
+        """Return whether OpenFront.exe exists, regardless of window focus."""
+        if os.name != "nt":
+            return False
+        result = subprocess.run(
+            ["tasklist", "/FI", "IMAGENAME eq OpenFront.exe", "/NH"],
+            capture_output=True, text=True, check=False,
+        )
+        return "OpenFront.exe" in result.stdout
+
     def launch(self) -> None:
-        """Ask Windows to launch the installed game."""
+        """Launch through Steam, with a direct-install fallback."""
         if os.name != "nt":
             raise OSError("OpenFront can only be launched from Windows")
-        os.startfile("OpenFront.exe")  # type: ignore[attr-defined]
-
+        try:
+            os.startfile("steam://rungameid/3560670")  # type: ignore[attr-defined]
+            return
+        except OSError:
+            pass
+        candidates = (
+            os.environ.get("OPENFRONT_EXE", ""),
+            r"C:\Program Files (x86)\Steam\steamapps\common\OpenFront\OpenFront.exe",
+            r"C:\Program Files\Steam\steamapps\common\OpenFront\OpenFront.exe",
+        )
+        for candidate in candidates:
+            if candidate and os.path.isfile(candidate):
+                subprocess.Popen([candidate], close_fds=True)
+                return
+        raise OSError("Steam or OpenFront.exe could not be started")

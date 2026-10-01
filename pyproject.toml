@@ -7,7 +7,7 @@ name = "openfront-auto-placer"
 version = "0.1.0"
 description = "Windows OpenFront keyboard and mouse auto-placer"
 requires-python = ">=3.11"
-dependencies = ["pynput==1.8.2"]
+dependencies = ["pynput==1.8.2", "cairosvg==2.7.1", "Pillow==12.3.0"]
 
 [project.optional-dependencies]
 build = ["pyinstaller==6.22.3"]

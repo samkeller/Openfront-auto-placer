@@ -12,7 +12,7 @@ from src.game_detector import GameDetector
 from src.handlers.hotkey_listener import HotkeyListener
 from src.handlers.input_simulator import InputSimulator
 from src.handlers.loop_controller import LoopController
-from src.utils.assets import icon_path, load_logo
+from src.utils.assets import load_icon, load_logo
 
 
 BUILDING_LABELS = {
@@ -41,13 +41,15 @@ class OpenFrontApp(tk.Tk):
         self.config = load_config(config_path)
         self.controller = LoopController(self.config, InputSimulator(), self.detector.is_foreground)
         self.listener = HotkeyListener(
-            self.config.buildings, self.controller.toggle, self.controller.stop
+            self.config.buildings, self._on_hotkey, self._stop_from_hotkey
         )
         self.listener.start()
         self._logo = load_logo(self)
+        self._icons: dict[str, tk.PhotoImage] = {}
         self._building_vars: dict[str, tuple[tk.BooleanVar, tk.StringVar, tk.StringVar, tk.StringVar]] = {}
         self._general_vars: dict[str, tk.StringVar] = {}
         self._build_widgets()
+        self._bind_theme()
         self.protocol("WM_DELETE_WINDOW", self.close)
         self.after(400, self._refresh_status)
 
@@ -77,15 +79,14 @@ class OpenFrontApp(tk.Tk):
                 tk.StringVar(value=str(building.multiplier)),
             )
             self._building_vars[building.name] = (active, hotkey, game_key, multiplier)
+            icon = load_icon(self, building.name)
+            if icon:
+                self._icons[building.name] = icon
             ttk.Checkbutton(
-                row, text=BUILDING_LABELS[building.name], variable=active,
+                row, text=BUILDING_LABELS[building.name], image=icon,
+                compound="left", variable=active,
                 command=lambda name=building.name: self._toggle(name),
             ).grid(row=0, column=0, sticky="w")
-            asset = icon_path(building.name)
-            ttk.Label(
-                row, text=f"  {asset.name}" if asset else "  (no icon)",
-                foreground="#777",
-            ).grid(row=0, column=1, columnspan=5, sticky="e")
             ttk.Label(row, text="Hotkey").grid(row=1, column=0, sticky="e")
             ttk.Entry(row, textvariable=hotkey, width=10).grid(row=1, column=1, padx=3)
             ttk.Label(row, text="Game key").grid(row=1, column=2, sticky="e")
@@ -128,14 +129,26 @@ class OpenFrontApp(tk.Tk):
         return "+".join(sorted(hotkey, key=lambda item: (item not in {"ctrl", "shift", "alt"}, item)))
 
     def _toggle(self, name: str) -> None:
-        variable = self._building_vars[name][0]
         building = next(item for item in self.config.buildings if item.name == name)
-        if variable.get():
-            self.controller.toggle(building)
-            self.status.configure(text=f"{BUILDING_LABELS[name]} enabled")
+        self._on_hotkey(building)
+
+    def _on_hotkey(self, building: Building) -> None:
+        variable = self._building_vars[building.name][0]
+        self.controller.toggle(building)
+        for variables in self._building_vars.values():
+            variables[0].set(False)
+        active = self.controller.active
+        if active:
+            self._building_vars[active.name][0].set(True)
+            self.status.configure(text=f"{BUILDING_LABELS[active.name]} enabled")
         else:
-            self.controller.stop()
             self.status.configure(text="Auto-placement stopped")
+
+    def _stop_from_hotkey(self) -> None:
+        self.controller.stop()
+        for variables in self._building_vars.values():
+            variables[0].set(False)
+        self.status.configure(text="Auto-placement stopped")
 
     def _read_config(self) -> Config:
         try:
@@ -170,7 +183,7 @@ class OpenFrontApp(tk.Tk):
                 self.config, InputSimulator(), self.detector.is_foreground
             )
             self.listener = HotkeyListener(
-                self.config.buildings, self.controller.toggle, self.controller.stop
+                self.config.buildings, self._on_hotkey, self._stop_from_hotkey
             )
             self.listener.start()
             self.status.configure(text="Settings applied")
@@ -202,11 +215,11 @@ class OpenFrontApp(tk.Tk):
         if not self.winfo_exists():
             return
         active = self.controller.active
-        detected = self.detector.is_foreground()
+        detected = self.detector.is_running()
         if active:
             self.status.configure(
                 text=f"{BUILDING_LABELS[active.name]} enabled · "
-                f"{'game detected' if detected else 'focus the game'}"
+                f"{'game detected' if detected else 'game not detected'}"
             )
         else:
             self.status.configure(text="Game detected" if detected else "Game not detected")
@@ -215,9 +228,26 @@ class OpenFrontApp(tk.Tk):
     def _launch(self) -> None:
         try:
             self.detector.launch()
-            self.status.configure(text="Game launch requested")
+            self.status.configure(text="Game launch requested · waiting for OpenFront")
         except OSError as exc:
             messagebox.showerror("Launch game", str(exc))
+
+    def _bind_theme(self) -> None:
+        """Apply a readable dark theme while retaining native Tk widgets."""
+        self.configure(background="#151923")
+        style = ttk.Style(self)
+        style.theme_use("clam")
+        style.configure(".", background="#151923", foreground="#f1f5f9")
+        style.configure("TFrame", background="#151923")
+        style.configure("TLabelframe", background="#151923", foreground="#94a3b8")
+        style.configure("TLabelframe.Label", background="#151923", foreground="#94a3b8")
+        style.configure("TLabel", background="#151923", foreground="#e2e8f0")
+        style.configure("TCheckbutton", background="#202633", foreground="#f8fafc",
+                        padding=8)
+        style.map("TCheckbutton", background=[("active", "#334155")])
+        style.configure("TButton", background="#334155", foreground="#f8fafc", padding=7)
+        style.configure("TEntry", fieldbackground="#202633", foreground="#f8fafc")
+        style.configure("TCombobox", fieldbackground="#202633", foreground="#f8fafc")
 
     def close(self) -> None:
         self.listener.close()
