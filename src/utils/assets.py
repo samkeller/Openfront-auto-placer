@@ -36,7 +36,7 @@ def icon_path(building: str) -> Path | None:
     return path if path.exists() else None
 
 
-def load_logo(master: tk.Misc) -> tk.PhotoImage | None:
+def load_logo(master: tk.Misc, size: int = 56) -> tk.PhotoImage | None:
     """Load the bundled logo, keeping the GUI usable if it is unavailable."""
     path = assets_directory() / "Logo.jpg"
     if not path.exists():
@@ -48,7 +48,7 @@ def load_logo(master: tk.Misc) -> tk.PhotoImage | None:
         image = tk.PhotoImage(master=master, data=stream.getvalue())
     except (OSError, tk.TclError):
         return None
-    scale = max(image.width() // 96, 1)
+    scale = max(image.width() // size, 1)
     return image.subsample(scale, scale)
 
 
