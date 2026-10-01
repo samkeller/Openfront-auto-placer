@@ -1,6 +1,7 @@
 # OpenFront auto-placer
 
-Console-based Windows tool for the Steam `OpenFront.exe`. It sends a building
+Windows tool for the Steam `OpenFront.exe`. It provides a lightweight GUI and
+retains the console mode. Both send a building
 shortcut followed by a left click at the **current mouse position** while the
 game is the foreground window. It does not bring the game to the foreground.
 
@@ -12,12 +13,13 @@ source, open a terminal in its directory, then run:
 ```bat
 py -3 -m venv .venv
 .venv/Scripts/python.exe -m pip install -r requirements.txt
-.venv/Scripts/python.exe -m src.main
+.venv/Scripts/python.exe -m src.gui_main
 ```
 
 The first launch copies `config.toml.default` to `config.toml` alongside the
-source. Edit `config.toml` while the tool is stopped; changes persist across
-restarts. Match the `game_key` values to your in-game bindings.
+source. The GUI loads and saves it automatically. Match the `game_key` values
+to your in-game bindings. The original console mode remains available with
+`.venv/Scripts/python.exe -m src.main`.
 
 ## Usage and configuration
 

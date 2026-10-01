@@ -3,7 +3,7 @@ from pathlib import Path
 
 root = Path(SPECPATH)
 a = Analysis(
-    [str(root / "src" / "main.py")],
+    [str(root / "src" / "gui_main.py")],
     pathex=[str(root)],
     binaries=[],
     datas=[(str(root / "config.toml.default"), ".")],
@@ -23,5 +23,5 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    console=True,
+    console=False,
 )

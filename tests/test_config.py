@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from src.config.loader import load_config, parse_hotkey
+from src.config.loader import load_config, parse_hotkey, save_config
 from src.handlers.input_simulator import presses_per_placement
 
 
@@ -56,6 +56,13 @@ class ConfigTests(unittest.TestCase):
         city, *_ = load_config(TEMPLATE).buildings
         self.assertEqual(presses_per_placement(city), 2)
         self.assertEqual(presses_per_placement(replace(city, multiplier=1)), 1)
+
+    def test_save_round_trip(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.toml"
+            config = load_config(TEMPLATE)
+            save_config(path, config)
+            self.assertEqual(load_config(path), config)
 
 
 if __name__ == "__main__":
