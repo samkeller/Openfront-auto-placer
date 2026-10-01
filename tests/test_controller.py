@@ -86,7 +86,10 @@ class ControllerTests(unittest.TestCase):
             controller.close()
 
     def test_input_error_does_not_stop_placement(self) -> None:
-        config = replace(load_config(TEMPLATE), click_delay_ms=10)
+        config = load_config(TEMPLATE)
+        building = replace(config.buildings[0], multiplier=1)
+        config = replace(config, click_delay_ms=10,
+                         max_iterations_per_session=1, buildings=(building,))
 
         class FailOnceInput(FakeInput):
             failed = False
@@ -100,10 +103,11 @@ class ControllerTests(unittest.TestCase):
         simulator = FailOnceInput()
         controller = LoopController(config, simulator, lambda: True)
         try:
-            building = config.buildings[0]
             controller.toggle(building)
             self.assertTrue(simulator.clicked.wait(1))
-            self.assertIs(controller.active, building)
+            with controller.condition:
+                self.assertEqual(controller.count, 1)
+                self.assertIsNone(controller.active)
             self.assertEqual(simulator.events, ["key:1", "click"])
         finally:
             controller.close()
