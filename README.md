@@ -41,21 +41,22 @@ log_level = "INFO"
 city = { hotkey = "F1", game_key = "1", stackable = true, multiplier = 1 }
 ```
 
-Hotkeys may use one trigger letter, digit, F1–F12, Escape or Pause with
+Hotkeys may use one trigger letter, digit, F1–F12, `Esc` or `Pause` with
 `Ctrl`, `Shift`, and/or `Alt` (for example `Ctrl+Shift+V`). The trigger
 must not overlap any in-game key. F0 does not exist on a standard keyboard,
 so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
 flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
 Atomic Bomb are stackable — these are the only ones the game can place in
 bulk. `double_press_delay_ms` is waited after every key press, including the
-last one before the click, so the game can register the selection; it
-defaults to 20 ms and may not go below 10 ms.
+last one before the click, so the game can register the selection. It is
+required and may not go below 10 ms; the template ships 20 ms.
 
 ### Placing five at a time (`multiplier`)
 
 `multiplier` is the selection size, **not** an automatic stopping count. It
 accepts exactly `1` or `5`, mirroring the game's own ×1/×5 toggle, and `5` is
-only allowed on a stackable building:
+only allowed on a stackable building. Escape may not be a hotkey trigger when
+any building uses `multiplier = 5`, because the sequence sends Escape itself:
 
 ```toml
 city = { hotkey = "F1", game_key = "1", stackable = true, multiplier = 5 }

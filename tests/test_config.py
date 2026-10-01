@@ -55,6 +55,19 @@ class ConfigTests(unittest.TestCase):
                 'game_key = "1", stackable = true, multiplier = 5'))
             self.assertEqual(load_config(path).buildings[0].multiplier, 5)
 
+    def test_escape_hotkey_conflicts_with_bulk(self) -> None:
+        """Escape is sent to clear the selection, so it cannot also be a hotkey."""
+        template = TEMPLATE.read_text().replace('hotkey = "F1"', 'hotkey = "Esc"')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.toml"
+            path.write_text(template)
+            self.assertEqual(load_config(path).buildings[0].hotkey, frozenset(("esc",)))
+            path.write_text(template.replace(
+                'stackable = true, multiplier = 1',
+                'stackable = true, multiplier = 5', 1))
+            with self.assertRaisesRegex(ValueError, "Escape"):
+                load_config(path)
+
     def test_chords_and_press_count(self) -> None:
         self.assertEqual(parse_hotkey("Ctrl+Shift+V"), frozenset(("ctrl", "shift", "v")))
         with self.assertRaises(ValueError):

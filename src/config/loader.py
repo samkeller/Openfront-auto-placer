@@ -112,4 +112,10 @@ def load_config(path: Path) -> Config:
         buildings.append(Building(name, chord, key.lower(), stackable, multiplier))
     if any(key in chord for chord in seen for key in game_keys):
         raise ValueError("a hotkey trigger cannot also be a simulated game key")
+    # A x5 placement sends Escape to clear the current selection, which would
+    # otherwise fire an Escape hotkey and toggle the tool on every placement.
+    if (any(building.multiplier == 5 for building in buildings)
+            and any("esc" in chord for chord in seen)):
+        raise ValueError("Escape cannot be a hotkey trigger when a building uses "
+                         "multiplier = 5")
     return Config(delay, double_delay, limit, level, tuple(buildings))

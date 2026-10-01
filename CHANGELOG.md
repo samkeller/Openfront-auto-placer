@@ -13,6 +13,8 @@
   of silently falling back to a single press.
 - Log every simulated step at DEBUG level, and document that the game applies
   ×5 only to upgrades and atomic bombs.
+- Reject `Esc` as a hotkey trigger when a building uses `multiplier = 5`,
+  since the placement sequence sends Escape itself.
 
 ## 0.1.0
 
