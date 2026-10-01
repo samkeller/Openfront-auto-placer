@@ -11,8 +11,8 @@ source, open a terminal in its directory, then run:
 
 ```bat
 py -3 -m venv .venv
-.venv/Scripts/python.exe -m pip install -r requirements.txt
-.venv/Scripts/python.exe -m src.main
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m src.main
 ```
 
 The first launch copies `config.toml.default` to `config.toml` alongside the
