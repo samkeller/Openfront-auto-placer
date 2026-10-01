@@ -95,6 +95,7 @@ class LoopController:
                     if not self.game_is_foreground():
                         continue
                     self.simulator.press_game_key(building.game_key)
+                    self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
                 if presses_per_placement(building) == 2:
                     with self.condition:
                         if self.closed or self.active != building:

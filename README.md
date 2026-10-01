@@ -47,8 +47,15 @@ must not overlap any in-game key. F0 does not exist on a standard keyboard,
 so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
 flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
 Atomic Bomb are stackable. When `target > 5`, those buildings send the game
-key twice, wait at least 50 ms, then click. Other buildings send it once.
-`target` is a selection mode, **not** an automatic stopping count.
+key twice; other buildings send it once. `double_press_delay_ms` is waited
+after every selection-key press, including the last one before the click, so
+the game can register the selection. `target` is a selection mode, **not** an
+automatic stopping count.
+
+Game keys are sent as physical key presses, identified by their position on a
+US keyboard layout, because the game reads `KeyboardEvent.code` (`Digit1`,
+`KeyA`). This is layout independent: `game_key = "1"` always reaches the
+game's *1* shortcut, even on AZERTY where that key types `&`.
 
 The click interval has a minimum of 100 ms. The session stops after 5000
 placements by default; set `max_iterations_per_session = 0` for no limit
@@ -78,6 +85,9 @@ must be verified manually on a Windows machine.
 
 - No clicks? Focus the non-minimized `OpenFront.exe` window, check your game
   bindings, pointer location, and Windows privilege level.
+- Clicks logged but nothing is built? The pointer must be over the map, not
+  over the HUD, and the match must be past the spawn phase. Raise
+  `double_press_delay_ms` if the game needs longer to arm the selection.
 - Can't create `config.toml`? Move the executable to a writable folder.
 - Config error? Correct the value reported in the console or restore the
   template and restart.
