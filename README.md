@@ -15,6 +15,8 @@ The tool sends input only while `OpenFront.exe` is the foreground window, at the
 Clone the repository, then run these commands from its folder:
 
 ```bat
+git clone https://github.com/samkeller/Openfront-auto-placer.git
+cd Openfront-auto-placer
 py -3 -m venv .venv
 .venv\Scripts\python.exe -m pip install -e .
 .venv\Scripts\python.exe -m src.gui_main

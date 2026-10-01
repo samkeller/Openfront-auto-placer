@@ -23,6 +23,12 @@ Run the existing unit tests before submitting changes:
 
 The tests mock system input, so actual interaction with OpenFront and executable builds still need to be checked on Windows.
 
+On a headless Linux test host, use the dummy input backend:
+
+```sh
+PYNPUT_BACKEND=dummy python -m unittest discover -s tests
+```
+
 ## Pull requests
 
 - Describe the problem and the behavior changed.
