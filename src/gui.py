@@ -133,24 +133,31 @@ class OpenFrontApp(tk.Tk):
 
     def _toggle(self, name: str) -> None:
         building = next(item for item in self.settings.buildings if item.name == name)
-        self._on_hotkey(building)
+        self._apply_hotkey(building)
 
     def _on_hotkey(self, building: Building) -> None:
+        """Queue global-hook work on Tk's event loop."""
+        self.after(0, self._apply_hotkey, building)
+
+    def _apply_hotkey(self, building: Building) -> None:
         self.controller.toggle(building)
         for variables in self._building_vars.values():
             variables[0].set(False)
         active = self.controller.active
         if active:
             self._building_vars[active.name][0].set(True)
-            self.status.configure(text=f"{BUILDING_LABELS[active.name]} enabled")
+            self._set_status(f"{BUILDING_LABELS[active.name]} enabled")
         else:
-            self.status.configure(text="Auto-placement stopped")
+            self._set_status("Auto-placement stopped")
 
     def _stop_from_hotkey(self) -> None:
+        self.after(0, self._stop_ui)
+
+    def _stop_ui(self) -> None:
         self.controller.stop()
         for variables in self._building_vars.values():
             variables[0].set(False)
-        self.status.configure(text="Auto-placement stopped")
+        self._set_status("Auto-placement stopped")
 
     def _read_config(self) -> Config:
         try:
@@ -180,6 +187,7 @@ class OpenFrontApp(tk.Tk):
             if persist:
                 save_config(self.config_path, validated)
             self.settings = validated
+            self._sync_vars()
             self.listener.close()
             self.controller.close()
             self.controller = LoopController(

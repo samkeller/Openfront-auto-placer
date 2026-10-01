@@ -36,7 +36,7 @@ class GameDetector:
         return self._running_cache
 
     def launch(self) -> None:
-        """Launch through Steam, with a direct-install fallback."""
+        """Launch through Steam, falling back if the URI handler is unavailable."""
         if os.name != "nt":
             raise OSError("OpenFront can only be launched from Windows")
         try:
