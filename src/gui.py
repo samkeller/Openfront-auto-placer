@@ -38,10 +38,10 @@ class OpenFrontApp(tk.Tk):
         self.minsize(760, 560)
         self.config_path = config_path
         self.detector = detector or GameDetector()
-        self.config = load_config(config_path)
-        self.controller = LoopController(self.config, InputSimulator(), self.detector.is_foreground)
+        self.settings = load_config(config_path)
+        self.controller = LoopController(self.settings, InputSimulator(), self.detector.is_foreground)
         self.listener = HotkeyListener(
-            self.config.buildings, self._on_hotkey, self._stop_from_hotkey
+            self.settings.buildings, self._on_hotkey, self._stop_from_hotkey
         )
         self.listener.start()
         self._logo = load_logo(self)
@@ -68,7 +68,7 @@ class OpenFrontApp(tk.Tk):
 
         buildings = ttk.LabelFrame(container, text="Buildings", padding=8)
         buildings.pack(fill="both", expand=True)
-        for index, building in enumerate(self.config.buildings):
+        for index, building in enumerate(self.settings.buildings):
             row = ttk.Frame(buildings)
             row.grid(row=index // 2, column=index % 2, sticky="ew", padx=6, pady=4)
             buildings.columnconfigure(index % 2, weight=1)
@@ -104,7 +104,7 @@ class OpenFrontApp(tk.Tk):
             ("max_iterations_per_session", "Session limit (0 = unlimited)"),
             ("log_level", "Console log level"),
         )):
-            variable = tk.StringVar(value=str(getattr(self.config, name)))
+            variable = tk.StringVar(value=str(getattr(self.settings, name)))
             self._general_vars[name] = variable
             ttk.Label(settings, text=label).grid(row=0, column=index * 2, sticky="w", padx=(0, 4))
             if name == "log_level":
@@ -129,11 +129,10 @@ class OpenFrontApp(tk.Tk):
         return "+".join(sorted(hotkey, key=lambda item: (item not in {"ctrl", "shift", "alt"}, item)))
 
     def _toggle(self, name: str) -> None:
-        building = next(item for item in self.config.buildings if item.name == name)
+        building = next(item for item in self.settings.buildings if item.name == name)
         self._on_hotkey(building)
 
     def _on_hotkey(self, building: Building) -> None:
-        variable = self._building_vars[building.name][0]
         self.controller.toggle(building)
         for variables in self._building_vars.values():
             variables[0].set(False)
@@ -163,11 +162,11 @@ class OpenFrontApp(tk.Tk):
                 buildings.append(
                     Building(name, parse_hotkey(hotkey.get()), game_key.get(), int(multiplier.get()))
                 )
-            return replace(self.config, **general, buildings=tuple(buildings))
+            return replace(self.settings, **general, buildings=tuple(buildings))
         except (TypeError, ValueError) as exc:
             raise ValueError(str(exc)) from exc
 
-    def _apply(self) -> None:
+    def _apply(self, persist: bool = False) -> None:
         try:
             config = self._read_config()
             # Validate every cross-field rule using the same loader as the CLI.
@@ -175,15 +174,16 @@ class OpenFrontApp(tk.Tk):
                 candidate = Path(directory) / "config.toml"
                 save_config(candidate, config)
                 validated = load_config(candidate)
-            save_config(self.config_path, validated)
-            self.config = validated
+            if persist:
+                save_config(self.config_path, validated)
+            self.settings = validated
             self.listener.close()
             self.controller.close()
             self.controller = LoopController(
-                self.config, InputSimulator(), self.detector.is_foreground
+                self.settings, InputSimulator(), self.detector.is_foreground
             )
             self.listener = HotkeyListener(
-                self.config.buildings, self._on_hotkey, self._stop_from_hotkey
+                self.settings.buildings, self._on_hotkey, self._stop_from_hotkey
             )
             self.listener.start()
             self.status.configure(text="Settings applied")
@@ -191,11 +191,11 @@ class OpenFrontApp(tk.Tk):
             messagebox.showerror("Configuration error", str(exc))
 
     def _save(self) -> None:
-        self._apply()
+        self._apply(persist=True)
 
     def _reset(self) -> None:
         try:
-            self.config = load_config(self.config_path)
+            self.settings = load_config(self.config_path)
             self._sync_vars()
             self.status.configure(text="Settings reloaded")
         except (OSError, ValueError) as exc:
@@ -203,8 +203,8 @@ class OpenFrontApp(tk.Tk):
 
     def _sync_vars(self) -> None:
         for name, variable in self._general_vars.items():
-            variable.set(str(getattr(self.config, name)))
-        for building in self.config.buildings:
+            variable.set(str(getattr(self.settings, name)))
+        for building in self.settings.buildings:
             active, hotkey, game_key, multiplier = self._building_vars[building.name]
             active.set(False)
             hotkey.set(self._hotkey_text(building.hotkey))
@@ -223,7 +223,7 @@ class OpenFrontApp(tk.Tk):
             )
         else:
             self.status.configure(text="Game detected" if detected else "Game not detected")
-        self.after(400, self._refresh_status)
+        self.after(2000, self._refresh_status)
 
     def _launch(self) -> None:
         try:

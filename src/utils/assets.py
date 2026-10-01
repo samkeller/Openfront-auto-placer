@@ -6,6 +6,7 @@ import sys
 import tkinter as tk
 from PIL import Image
 import cairosvg
+from cairocffi import CairoError
 
 
 ASSET_NAMES = {
@@ -58,5 +59,5 @@ def load_icon(master: tk.Misc, building: str) -> tk.PhotoImage | None:
     try:
         data = cairosvg.svg2png(url=str(path), output_width=32, output_height=32)
         return tk.PhotoImage(master=master, data=data)
-    except (OSError, ValueError, cairosvg.CairoError, tk.TclError):
+    except (OSError, ValueError, CairoError, tk.TclError):
         return None

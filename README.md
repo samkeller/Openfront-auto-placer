@@ -22,8 +22,8 @@ to your in-game bindings. The original console mode remains available with
 `.venv/Scripts/python.exe -m src.main`.
 
 The supplied building SVGs and logo are kept in `assets/` and bundled into the
-standalone executable. The GUI shows the logo and the matching asset filename
-on every building card; SVG rendering is intentionally left dependency-free.
+standalone executable. The GUI renders the logo and rasterized building icons
+using CairoSVG and Pillow.
 
 ## Usage and configuration
 

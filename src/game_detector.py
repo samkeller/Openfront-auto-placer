@@ -40,4 +40,8 @@ class GameDetector:
             if candidate and os.path.isfile(candidate):
                 subprocess.Popen([candidate], close_fds=True)
                 return
-        raise OSError("Steam or OpenFront.exe could not be started")
+        raise OSError(
+            "Could not start OpenFront. Steam was unavailable and OpenFront.exe "
+            "was not found in the default Steam folders. Set OPENFRONT_EXE to "
+            "the executable path."
+        )
