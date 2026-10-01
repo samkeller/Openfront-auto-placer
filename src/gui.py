@@ -12,6 +12,7 @@ from src.game_detector import GameDetector
 from src.handlers.hotkey_listener import HotkeyListener
 from src.handlers.input_simulator import InputSimulator
 from src.handlers.loop_controller import LoopController
+from src.utils.assets import icon_path, load_logo
 
 
 BUILDING_LABELS = {
@@ -43,6 +44,7 @@ class OpenFrontApp(tk.Tk):
             self.config.buildings, self.controller.toggle, self.controller.stop
         )
         self.listener.start()
+        self._logo = load_logo(self)
         self._building_vars: dict[str, tuple[tk.BooleanVar, tk.StringVar, tk.StringVar, tk.StringVar]] = {}
         self._general_vars: dict[str, tk.StringVar] = {}
         self._build_widgets()
@@ -52,9 +54,13 @@ class OpenFrontApp(tk.Tk):
     def _build_widgets(self) -> None:
         container = ttk.Frame(self, padding=16)
         container.pack(fill="both", expand=True)
-        ttk.Label(container, text="OpenFront Auto-Placer", font=("TkDefaultFont", 16, "bold")).pack(
-            anchor="w"
-        )
+        heading = ttk.Frame(container)
+        heading.pack(anchor="w")
+        if self._logo:
+            ttk.Label(heading, image=self._logo).pack(side="left", padx=(0, 8))
+        ttk.Label(
+            heading, text="OpenFront Auto-Placer", font=("TkDefaultFont", 16, "bold")
+        ).pack(side="left")
         self.status = ttk.Label(container, text="Ready", foreground="#555")
         self.status.pack(anchor="w", pady=(2, 12))
 
@@ -75,6 +81,11 @@ class OpenFrontApp(tk.Tk):
                 row, text=BUILDING_LABELS[building.name], variable=active,
                 command=lambda name=building.name: self._toggle(name),
             ).grid(row=0, column=0, sticky="w")
+            asset = icon_path(building.name)
+            ttk.Label(
+                row, text=f"  {asset.name}" if asset else "  (no icon)",
+                foreground="#777",
+            ).grid(row=0, column=1, columnspan=5, sticky="e")
             ttk.Label(row, text="Hotkey").grid(row=1, column=0, sticky="e")
             ttk.Entry(row, textvariable=hotkey, width=10).grid(row=1, column=1, padx=3)
             ttk.Label(row, text="Game key").grid(row=1, column=2, sticky="e")

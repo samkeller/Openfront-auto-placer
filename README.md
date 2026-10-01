@@ -21,6 +21,10 @@ source. The GUI loads and saves it automatically. Match the `game_key` values
 to your in-game bindings. The original console mode remains available with
 `.venv/Scripts/python.exe -m src.main`.
 
+The supplied building SVGs and logo are kept in `assets/` and bundled into the
+standalone executable. The GUI shows the logo and the matching asset filename
+on every building card; SVG rendering is intentionally left dependency-free.
+
 ## Usage and configuration
 
 Keep the console open, focus the game, and point the cursor at a valid location.

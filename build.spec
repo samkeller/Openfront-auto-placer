@@ -6,7 +6,10 @@ a = Analysis(
     [str(root / "src" / "gui_main.py")],
     pathex=[str(root)],
     binaries=[],
-    datas=[(str(root / "config.toml.default"), ".")],
+    datas=[
+        (str(root / "config.toml.default"), "."),
+        (str(root / "assets"), "assets"),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
