@@ -1,8 +1,8 @@
 [general]
-click_delay_ms = 100
-double_press_delay_ms = 300
+click_delay_ms = 50
+double_press_delay_ms = 20
 max_iterations_per_session = 5000
-log_level = "DEBUG"
+log_level = "INFO"
 
 [shortcuts]
 city = { hotkey = "F1", game_key = "1", multiplier = 5 }
@@ -11,7 +11,7 @@ port = { hotkey = "F3", game_key = "3", multiplier = 5 }
 defense_post = { hotkey = "F4", game_key = "4", multiplier = 1 }
 missile_silo = { hotkey = "F5", game_key = "5", multiplier = 5 }
 sam_launcher = { hotkey = "F6", game_key = "6", multiplier = 5 }
-warship = { hotkey = "F7", game_key = "7", multiplier = 1 }
-atom_bomb = { hotkey = "F8", game_key = "8", multiplier = 5 }
+atom_bomb = { hotkey = "F7", game_key = "8", multiplier = 5 }
+warship = { hotkey = "F8", game_key = "7", multiplier = 1 }
 hydrogen_bomb = { hotkey = "F9", game_key = "9", multiplier = 1 }
 mirv = { hotkey = "F10", game_key = "0", multiplier = 1 }

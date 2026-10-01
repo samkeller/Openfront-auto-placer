@@ -11,8 +11,8 @@ source, open a terminal in its directory, then run:
 
 ```bat
 py -3 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m src.main
+.venv/Scripts/python.exe -m pip install -r requirements.txt
+.venv/Scripts/python.exe -m src.main
 ```
 
 The first launch copies `config.toml.default` to `config.toml` alongside the
@@ -33,24 +33,46 @@ Example from `config.toml.default`:
 ```toml
 [general]
 click_delay_ms = 100
-double_press_delay_ms = 50
+double_press_delay_ms = 20
 max_iterations_per_session = 5000
 log_level = "INFO"
 
 [shortcuts]
-city = { hotkey = "F1", game_key = "1", stackable = true, target = 1 }
+city = { hotkey = "F1", game_key = "1", multiplier = 5 }
 ```
 
-Hotkeys may use one trigger letter, digit, F1–F12, Escape or Pause with
+Hotkeys may use one trigger letter, digit, F1–F12, `Esc` or `Pause` with
 `Ctrl`, `Shift`, and/or `Alt` (for example `Ctrl+Shift+V`). The trigger
 must not overlap any in-game key. F0 does not exist on a standard keyboard,
-so M.I.R.V. defaults to F10. All ten entries are required. The `stackable`
-flag must match the building: City, Factory, Port, Missile Silo, S.A.M. and
-Atomic Bomb are stackable. When `target > 5`, those buildings send the game
-key twice, wait at least 50 ms, then click. Other buildings send it once.
-`target` is a selection mode, **not** an automatic stopping count.
+so M.I.R.V. defaults to F10. All ten entries are required.
+`double_press_delay_ms` is waited after every key press, including the
+last one before the click, so the game can register the selection. It is
+required and may not go below 10 ms; the template ships 300 ms.
 
-The click interval has a minimum of 100 ms. The session stops after 5000
+### `multiplier`: what ×5 really does
+
+`multiplier` mirrors the game's own ×1/×5 toggle and accepts exactly `1` or
+`5`. With `multiplier = 5` the tool sends **key, key, click** — nothing else,
+because any key that drops the current selection also discards the click the
+game is still holding back while it validates the preview.
+
+**×5 never places five new buildings.** OpenFront attaches the amount to an
+*upgrade* intent, or to an Atomic Bomb salvo. Anywhere else the amount is
+simply not sent, and the game builds exactly one structure. So `multiplier =
+5` is only meaningful for City, Factory, Port, Missile Silo and S.A.M.
+Launcher — and only with the pointer on an existing one of yours that can
+still be upgraded, where it buys five levels at once — or for the Atomic
+Bomb, where it fires five missiles. `5` is rejected for any other building.
+
+Check the in-game **×5 badge** on the ghost's cost label: if it does not
+appear, the game is not in ×5 mode and a click would only build one.
+
+Set `log_level = "DEBUG"` to log every simulated step (`[SEND] Touche 1
+(1/2)`, `[SEND] Touche 1 (2/2, arme le x5)`, `[SEND] Clic gauche`) and
+confirm what was actually sent.
+
+The click interval can be lowered to 10 ms; very short intervals may cause the
+game to miss inputs. The session stops after 5000
 placements by default; set `max_iterations_per_session = 0` for no limit
 (only if you accept the risk). Toggle again to start a new session.
 
@@ -78,6 +100,14 @@ must be verified manually on a Windows machine.
 
 - No clicks? Focus the non-minimized `OpenFront.exe` window, check your game
   bindings, pointer location, and Windows privilege level.
+- Clicks logged but nothing is built? The pointer must be over the map, not
+  over the HUD, and the match must be past the spawn phase. Raise
+  `double_press_delay_ms` if the game needs longer to arm the selection.
+- `multiplier = 5` still placing one at a time? The game only multiplies an
+  upgrade or an Atomic Bomb salvo, so point at an existing structure of yours
+  that can still be upgraded; on empty ground ×5 is impossible in OpenFront
+  itself. Switch to `log_level = "DEBUG"` to confirm both key presses are
+  sent, and watch for the in-game ×5 badge on the ghost's cost label.
 - Can't create `config.toml`? Move the executable to a writable folder.
 - Config error? Correct the value reported in the console or restore the
   template and restart.

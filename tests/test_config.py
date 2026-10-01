@@ -22,6 +22,8 @@ class ConfigTests(unittest.TestCase):
             self.assertEqual(config.buildings[-1].hotkey, frozenset(("f10",)))
             path.write_text(path.read_text().replace("click_delay_ms = 100", "click_delay_ms = 150"))
             self.assertEqual(load_config(path).click_delay_ms, 150)
+            path.write_text(path.read_text().replace("click_delay_ms = 150", "click_delay_ms = 10"))
+            self.assertEqual(load_config(path).click_delay_ms, 10)
 
     def test_invalid_configuration(self) -> None:
         for before, after in (
@@ -29,7 +31,9 @@ class ConfigTests(unittest.TestCase):
             ("max_iterations_per_session = 5000", "max_iterations_per_session = -1"),
             ('hotkey = "F2"', 'hotkey = "F1"'),
             ('hotkey = "F1"', 'hotkey = "1"'),
-            ("stackable = true", "stackable = 1"),
+            ("multiplier = 1", "multiplier = 2"),
+            ('defense_post = { hotkey = "F4", game_key = "4", multiplier = 1 }',
+             'defense_post = { hotkey = "F4", game_key = "4", multiplier = 5 }'),
         ):
             with self.subTest(after=after), tempfile.TemporaryDirectory() as directory:
                 path = Path(directory) / "config.toml"
@@ -37,14 +41,21 @@ class ConfigTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     load_config(path)
 
+    def test_bulk_multiplier_accepted_for_bulk_capable(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "config.toml"
+            path.write_text(TEMPLATE.read_text().replace(
+                'game_key = "1", multiplier = 5',
+                'game_key = "1", multiplier = 1'))
+            self.assertEqual(load_config(path).buildings[0].multiplier, 1)
+
     def test_chords_and_press_count(self) -> None:
         self.assertEqual(parse_hotkey("Ctrl+Shift+V"), frozenset(("ctrl", "shift", "v")))
         with self.assertRaises(ValueError):
             parse_hotkey("Ctrl+Ctrl+V")
-        city, _, _, defense, *_ = load_config(TEMPLATE).buildings
-        self.assertEqual(presses_per_placement(city), 1)
-        self.assertEqual(presses_per_placement(replace(city, target=6)), 2)
-        self.assertEqual(presses_per_placement(replace(defense, target=6)), 1)
+        city, *_ = load_config(TEMPLATE).buildings
+        self.assertEqual(presses_per_placement(city), 2)
+        self.assertEqual(presses_per_placement(replace(city, multiplier=1)), 1)
 
 
 if __name__ == "__main__":

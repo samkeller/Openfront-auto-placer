@@ -12,9 +12,13 @@ BUILDINGS = (
     "city", "factory", "port", "defense_post", "missile_silo",
     "sam_launcher", "atom_bomb", "warship", "hydrogen_bomb", "mirv",
 )
-STACKABLE = frozenset((
+#: The buildings the game can act on in bulk: the five upgradeable structures
+#: plus the atomic bomb, which fires as a salvo.
+BULK_CAPABLE = frozenset((
     "city", "factory", "port", "missile_silo", "sam_launcher", "atom_bomb",
 ))
+#: The two selection sizes the game itself offers (its x1/x5 toggle).
+MULTIPLIERS = frozenset((1, 5))
 MODIFIERS = frozenset(("ctrl", "shift", "alt"))
 KEYS = frozenset(("pause", "esc", *[f"f{i}" for i in range(1, 13)]))
 
@@ -26,8 +30,7 @@ class Building:
     name: str
     hotkey: frozenset[str]
     game_key: str
-    stackable: bool
-    target: int
+    multiplier: int
 
 
 @dataclass(frozen=True)
@@ -73,8 +76,8 @@ def load_config(path: Path) -> Config:
     shortcuts = data.get("shortcuts")
     if not isinstance(general, dict) or not isinstance(shortcuts, dict):
         raise ValueError("config needs [general] and [shortcuts] tables")
-    delay = _integer(general, "click_delay_ms", 100)
-    double_delay = _integer(general, "double_press_delay_ms", 50)
+    delay = _integer(general, "click_delay_ms", 10)
+    double_delay = _integer(general, "double_press_delay_ms", 10)
     limit = _integer(general, "max_iterations_per_session", 0)
     level = general.get("log_level")
     if level not in ("DEBUG", "INFO", "WARNING", "ERROR"):
@@ -96,13 +99,13 @@ def load_config(path: Path) -> Config:
         if not isinstance(key, str) or not re.fullmatch(r"[a-zA-Z0-9]", key):
             raise ValueError(f"{name}.game_key must be a single letter or digit")
         game_keys.add(key.lower())
-        stackable = entry.get("stackable")
-        if type(stackable) is not bool or stackable != (name in STACKABLE):
-            raise ValueError(f"{name}.stackable must match the building type")
-        target = entry.get("target", 1)
-        if type(target) is not int or target < 1:
-            raise ValueError(f"{name}.target must be a positive integer")
-        buildings.append(Building(name, chord, key.lower(), stackable, target))
+        multiplier = entry.get("multiplier", 1)
+        if type(multiplier) is not int or multiplier not in MULTIPLIERS:
+            raise ValueError(f"{name}.multiplier must be 1 or 5")
+        if multiplier == 5 and name not in BULK_CAPABLE:
+            raise ValueError(f"the game cannot act on {name} in bulk; "
+                             "multiplier must be 1")
+        buildings.append(Building(name, chord, key.lower(), multiplier))
     if any(key in chord for chord in seen for key in game_keys):
         raise ValueError("a hotkey trigger cannot also be a simulated game key")
     return Config(delay, double_delay, limit, level, tuple(buildings))

@@ -43,7 +43,12 @@ class LoopController:
             else:
                 self.active = building
                 self.count = 0
-                logging.info("[START] Auto-placement ACTIVÉ pour %s", building.name)
+                logging.info("[START] Auto-placement ACTIVÉ pour %s (x%s)",
+                             building.name, building.multiplier)
+                if presses_per_placement(building) == 2:
+                    logging.info("[INFO] x5 : le jeu ne multiplie que les "
+                                 "améliorations et les bombes A ; visez une "
+                                 "structure existante à améliorer")
             self.condition.notify_all()
 
     def stop(self) -> None:
@@ -94,14 +99,25 @@ class LoopController:
                         continue
                     if not self.game_is_foreground():
                         continue
+                    # The game clears its own selection after every placement,
+                    # so the first press always selects and the second always
+                    # arms x5. Nothing else may be sent in between: a key that
+                    # drops the selection also discards the click the game is
+                    # still holding back while it validates the preview.
+                    double = presses_per_placement(building) == 2
                     self.simulator.press_game_key(building.game_key)
-                if presses_per_placement(building) == 2:
+                    logging.debug("[SEND] Touche %s (1/%s)", building.game_key,
+                                  2 if double else 1)
+                    self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
+                if double:
                     with self.condition:
                         if self.closed or self.active != building:
                             continue
                         if not self.game_is_foreground():
                             continue
                         self.simulator.press_game_key(building.game_key)
+                        logging.debug("[SEND] Touche %s (2/2, arme le x5)",
+                                      building.game_key)
                         self.condition.wait(timeout=self.config.double_press_delay_ms / 1000)
                 with self.condition:
                     if self.closed or self.active != building:
@@ -111,6 +127,7 @@ class LoopController:
                     self.simulator.click()
                     self.last_click = monotonic()
                     self.count += 1
+                    logging.debug("[SEND] Clic gauche (placement %s)", self.count)
                     limit = self.config.max_iterations_per_session
                     if limit and self.count >= limit:
                         logging.warning("[WARN] Limite max iterations (%s/%s) : arrêt",
