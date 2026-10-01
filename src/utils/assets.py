@@ -31,7 +31,10 @@ def assets_directory() -> Path:
 
 def icon_path(building: str) -> Path | None:
     """Return a building's supplied SVG path, if it is present."""
-    path = assets_directory() / ASSET_NAMES[building]
+    name = ASSET_NAMES.get(building)
+    if name is None:
+        return None
+    path = assets_directory() / name
     return path if path.exists() else None
 
 

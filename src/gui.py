@@ -58,7 +58,7 @@ class OpenFrontApp(tk.Tk):
         container.pack(fill="both", expand=True)
         heading = ttk.Frame(container)
         heading.pack(anchor="w")
-        if self._logo:
+        if self._logo is not None:
             ttk.Label(heading, image=self._logo).pack(side="left", padx=(0, 8))
         ttk.Label(
             heading, text="OpenFront Auto-Placer", font=("TkDefaultFont", 16, "bold")
@@ -80,7 +80,7 @@ class OpenFrontApp(tk.Tk):
             )
             self._building_vars[building.name] = (active, hotkey, game_key, multiplier)
             icon = load_icon(self, building.name)
-            if icon:
+            if icon is not None:
                 self._icons[building.name] = icon
             ttk.Checkbutton(
                 row, text=BUILDING_LABELS[building.name], image=icon,

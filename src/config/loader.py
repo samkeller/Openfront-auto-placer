@@ -115,7 +115,9 @@ def load_config(path: Path) -> Config:
 def save_config(path: Path, config: Config) -> None:
     """Persist a validated configuration atomically next to the executable."""
     def quote(value: str) -> str:
-        return value.replace("\\", "\\\\").replace('"', '\\"')
+        escapes = {"\\": "\\\\", '"': '\\"', "\b": "\\b", "\t": "\\t",
+                   "\n": "\\n", "\f": "\\f", "\r": "\\r"}
+        return "".join(escapes.get(character, character) for character in value)
 
     lines = [
         "[general]",
