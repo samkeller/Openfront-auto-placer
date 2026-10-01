@@ -85,6 +85,29 @@ class ControllerTests(unittest.TestCase):
         finally:
             controller.close()
 
+    def test_input_error_does_not_stop_placement(self) -> None:
+        config = replace(load_config(TEMPLATE), click_delay_ms=10)
+
+        class FailOnceInput(FakeInput):
+            failed = False
+
+            def press_game_key(self, key: str) -> None:
+                if not self.failed:
+                    self.failed = True
+                    raise RuntimeError("transient input error")
+                super().press_game_key(key)
+
+        simulator = FailOnceInput()
+        controller = LoopController(config, simulator, lambda: True)
+        try:
+            building = config.buildings[0]
+            controller.toggle(building)
+            self.assertTrue(simulator.clicked.wait(1))
+            self.assertIs(controller.active, building)
+            self.assertEqual(simulator.events, ["key:1", "click"])
+        finally:
+            controller.close()
+
 
 if __name__ == "__main__":
     unittest.main()

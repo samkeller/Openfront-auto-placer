@@ -139,4 +139,6 @@ class LoopController:
                     self.condition.wait(timeout=self.config.click_delay_ms / 1000)
             except Exception:
                 logging.exception("[ERROR] Échec de la simulation d'entrée")
-                self.stop()
+                with self.condition:
+                    self.condition.wait(timeout=max(
+                        self.config.click_delay_ms / 1000, 0.1))
